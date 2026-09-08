@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Superleap Switch Calculator</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.44.0/iconfont/tabler-icons.min.css">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #ffffff;
+    color: #171717;
+    margin: 0;
+    padding: 24px 20px 32px;
+    max-width: 640px;
+  }
+  label { font-size: 13px; color: #6b6b6b; }
+  select {
+    width: 100%;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid #dcdcdc;
+    padding: 0 10px;
+    font-size: 14px;
+    background: #fff;
+    color: #171717;
+  }
+  input[type="range"] {
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 4px;
+    background: #e2e2e2;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #0A2E22;
+    cursor: pointer;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #0A2E22;
+    border: none;
+    cursor: pointer;
+  }
+  .card {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 16px 18px;
+  }
+  .card.accent {
+    background: #E3F7EC;
+    border-color: #BEEBD3;
+  }
+  .card p.label { font-size: 13px; color: #5b6b63; margin: 0 0 8px; }
+  .card.accent p.label { color: #0F6E56; }
+  .card p.value { font-size: 22px; font-weight: 600; margin: 0 0 2px; }
+  .card.accent p.value { color: #0F6E56; }
+  .card p.time { font-size: 13px; color: #8a8a8a; margin: 0; }
+  .card.accent p.time { color: #0F6E56; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+  }
+  .footnote { font-size: 12px; color: #8a8a8a; margin-top: 16px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div style="margin-bottom: 6px;">
+  <label>Current CRM</label>
+  <select id="crm">
+    <option>Salesforce</option>
+    <option>Zoho</option>
+    <option>HubSpot</option>
+    <option>In-house or other</option>
+  </select>
+</div>
+
+<div style="display: flex; align-items: center; gap: 12px; margin: 16px 0 4px;">
+  <label style="min-width: 90px;">CRM users</label>
+  <input type="range" id="users" min="100" max="6000" step="100" value="2000" style="flex: 1;">
+  <span id="usersOut" style="font-size: 14px; font-weight: 600; min-width: 60px; text-align: right;">2,000</span>
+</div>
+
+<div style="display: flex; align-items: center; gap: 12px; margin: 4px 0 22px;">
+  <label style="min-width: 90px;">Records (M)</label>
+  <input type="range" id="records" min="0.1" max="12" step="0.1" value="3" style="flex: 1;">
+  <span id="recordsOut" style="font-size: 14px; font-weight: 600; min-width: 60px; text-align: right;">3.0M</span>
+</div>
+
+<div class="grid">
+  <div class="card">
+    <p class="label"><i class="ti ti-building"></i>&nbsp; SI-led migration</p>
+    <p class="value" id="siCost">₹48.1L</p>
+    <p class="time" id="siTime">~7 months</p>
+  </div>
+  <div class="card">
+    <p class="label"><i class="ti ti-puzzle"></i>&nbsp; HubSpot + agency</p>
+    <p class="value" id="hsCost">₹13.9L</p>
+    <p class="time" id="hsTime">~4 months</p>
+  </div>
+  <div class="card accent">
+    <p class="label"><i class="ti ti-rocket"></i>&nbsp; Superleap Deploy</p>
+    <p class="value">₹0</p>
+    <p class="time" id="slTime">Live in 52 days</p>
+  </div>
+</div>
+
+<div style="margin-top: 14px; padding: 14px 18px; background: #f7f7f5; border-radius: 12px;">
+  <p style="font-size: 13px; color: #5b5b5b; margin: 0;">What the SI route burns before you're even live: <span id="burnRate" style="font-weight: 600; color: #171717;">₹6.9L a month</span>, on top of running your old CRM in parallel.</p>
+</div>
+
+<p class="footnote">Anchored to Razorpay (10M+ records, live in 45 days) and Aakash (5,000+ users, 400 locations, quoted 10 months by a Big Four firm, live in 60 days). SI and HubSpot figures are directional, from public 2026 migration cost guides.</p>
+
+<script>
+function fmtINR(n) {
+  if (n >= 10000000) return '₹' + (n/10000000).toFixed(1) + 'Cr';
+  return '₹' + (n/100000).toFixed(1) + 'L';
+}
+function recalc() {
+  var users = parseFloat(document.getElementById('users').value);
+  var records = parseFloat(document.getElementById('records').value);
+  document.getElementById('usersOut').textContent = users.toLocaleString('en-IN');
+  document.getElementById('recordsOut').textContent = records.toFixed(1) + 'M';
+
+  var userScale = Math.min(users / 5000, 1);
+  var recordScale = Math.min(records / 10, 1);
+  var scale = Math.max(userScale, recordScale);
+
+  var siMonths = Math.round((3 + scale * 7) * 10) / 10;
+  var siCostUSD = Math.round(58000 + scale * 85000);
+  var siCostINR = siCostUSD * 83;
+
+  var hsMonths = Math.round((3 + scale * 3) * 10) / 10;
+  var hsCostUSD = Math.round(1500 + 5000 + scale * 15000);
+  var hsCostINR = hsCostUSD * 83;
+
+  var slDays = Math.round(14 + scale * 46);
+
+  document.getElementById('siCost').textContent = fmtINR(siCostINR);
+  document.getElementById('siTime').textContent = '~' + siMonths + ' months';
+  document.getElementById('hsCost').textContent = fmtINR(hsCostINR);
+  document.getElementById('hsTime').textContent = '~' + hsMonths + ' months';
+  document.getElementById('slTime').textContent = 'Live in ' + slDays + ' days';
+
+  var burn = Math.round(siCostINR / siMonths);
+  document.getElementById('burnRate').textContent = fmtINR(burn) + ' a month';
+}
+document.getElementById('users').addEventListener('input', recalc);
+document.getElementById('records').addEventListener('input', recalc);
+recalc();
+</script>
+
+</body>
+</html>
